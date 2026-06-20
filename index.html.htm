@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي الحضارة الرومانية - أ. سعيد شعبان</title>
+    <style>
+        :root { --primary: #7f1d1d; --accent: #b45309; --success: #15803d; --danger: #b91c1c; --bg: #fef3c7; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: #fefce8; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; flex-direction: column; padding: 10px; }
+        .main-card { width: 100%; max-width: 600px; background: white; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); border: 4px solid var(--primary); overflow: hidden; }
+        .top-nav-bar { background: linear-gradient(135deg, var(--primary), #991b1b); color: white; padding: 20px; text-align: center; font-size: 20px; font-weight: bold; border-bottom: 3px solid var(--accent); }
+        .content { padding: 30px; text-align: center; }
+        .teacher-img { width: 130px; height: 130px; border-radius: 50%; border: 4px solid var(--accent); margin-bottom: 20px; object-fit: cover; }
+        input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid var(--accent); text-align: center; font-size: 16px; margin-bottom: 20px; }
+        .btn-main { background: var(--accent); color: white; border: none; padding: 15px 40px; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .stages-nav { display: flex; width: 100%; max-width: 600px; margin-bottom: 15px; border: 2px solid var(--primary); border-radius: 12px; overflow: hidden; }
+        .stage-item { flex: 1; padding: 8px 2px; font-size: 8px; font-weight: bold; text-align: center; color: var(--primary); border-left: 1px solid #fde68a; }
+        .stage-item.current { background: var(--accent); color: white; }
+        .stage-item.done { background: var(--primary); color: white; }
+        .q-card { background: var(--bg); border-radius: 20px; padding: 25px; margin-bottom: 20px; border: 2px dashed var(--primary); font-size: 18px; font-weight: bold; line-height: 1.5; }
+        .btn-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .btn-opt { background: white; border: 2px solid var(--accent); padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; color: var(--primary); transition: 0.3s; }
+        .correct { background: var(--success) !important; color: white !important; border-color: #15803d !important; }
+        .wrong { background: var(--danger) !important; color: white !important; border-color: #991b1b !important; }
+        .feedback { color: var(--danger); font-weight: bold; margin-bottom: 15px; font-size: 16px; display: none; background: #fee2e2; padding: 10px; border-radius: 10px; }
+        .footer-identity { padding: 15px; font-size: 14px; color: var(--primary); font-weight: bold; text-align: center; background: #fffbeb; border-top: 2px solid var(--accent); }
+        .screen { display: none; }
+        .active-screen { display: block; }
+    </style>
+</head>
+<body>
+    <audio id="sWelcome" src="https://archive.org/download/correct_202604/welcome.mp3"></audio>
+    <audio id="sCor" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+    <audio id="sErr" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
+    <audio id="vCor" src="https://archive.org/download/correct_202604/correct.mp3"></audio>
+    <audio id="vErr" src="https://archive.org/download/correct_202604/wrong.mp3"></audio>
+
+    <div class="stages-nav" id="stagesNav" style="display:none;">
+        <div class="stage-item" id="t0">صواب/خطأ</div><div class="stage-item" id="t1">بم تفسر</div>
+        <div class="stage-item" id="t2">النتائج</div><div class="stage-item" id="t3">أكمل</div>
+        <div class="stage-item" id="t4">المقصود</div><div class="stage-item" id="t5">من هو</div>
+    </div>
+
+    <div class="main-card">
+        <div class="top-nav-bar">تحدي الحضارة الرومانية ⚔️</div>
+        <div class="content">
+            <div id="scr-1" class="screen active-screen">
+                <img src="https://i.ibb.co/gKFwNMZ/image.png" class="teacher-img">
+                <h3 style="color:var(--primary);">أ. سعيد شعبان</h3>
+                <input type="text" id="uName" placeholder="أدخل اسمك الثلاثي...">
+                <button id="startBtn" class="btn-main">ابدأ التحدي 🏆</button>
+            </div>
+            <div id="scr-2" class="screen">
+                <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--primary); margin-bottom:15px;">
+                    <span id="q-count">السؤال: 1</span><span id="s-val">الدرجة: 0</span>
+                </div>
+                <div class="q-card" id="qText"></div>
+                <div id="feedback" class="feedback"></div>
+                <div class="btn-grid" id="options"></div>
+            </div>
+            <div id="scr-3" class="screen">
+                <div id="final-msg" style="font-size: 18px; font-weight: bold; color: var(--primary); margin: 20px 0;"></div>
+                <button onclick="location.reload()" class="btn-main">إعادة التحدي 🔄</button>
+            </div>
+        </div>
+        <div class="footer-identity">إعداد: أ. سعيد شعبان | 01551625493</div>
+    </div>
+
+<script>
+let score = 0, cur = 0, canAnswer = true, userName = "", startTime;
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwZPW9fYT-pqjedH8e81aV9lf5ejc9DZ3AmQo2z78sBC9tIatdRkoGSJngHyOFSZRqPmw/exec";
+
+const quiz = [
+    {q: "تحولت روما من مجرد مدينة صغيرة على ساحل البحر المتوسط إلى إمبراطورية عظيمة.", ans: 0, opts: ["صواب", "خطأ"], type: 0, corr: "صواب"},
+    {q: "يُعد الإمبراطور دقلديانوس أول أباطرة الرومان الذين اعترفوا رسمياً بالمسيحية.", ans: 1, opts: ["صواب", "خطأ"], type: 0, corr: "خطأ (التصحيح: الإمبراطور قسطنطين الأول)"},
+    {q: "تميز الاقتصاد الروماني بالاعتماد بشكل كبير على النشاط الصناعي في المقام الأول.", ans: 1, opts: ["صواب", "خطأ"], type: 0, corr: "خطأ (التصحيح: اعتمد بشكل كبير على الزراعة والتجارة)"},
+    {q: "أعاد الإمبراطور تراجان حفر قناة سيزوستريس التي ربطت بين النيل والبحر الأحمر.", ans: 0, opts: ["صواب", "خطأ"], type: 0, corr: "صواب"},
+    {q: "ساد في روما نظام الحكم \"الملكي\" كآخر مرحلة سياسية قبل سقوط الإمبراطورية.", ans: 1, opts: ["صواب", "خطأ"], type: 0, corr: "خطأ (التصحيح: ساد النظام الإمبراطوري)"},
+    {q: "دخلت المسيحية مصر في منتصف القرن الأول الميلادي على يد القديس مرقس.", ans: 0, opts: ["صواب", "خطأ"], type: 0, corr: "صواب"},
+    {q: "تُعد اللغة اليونانية هي اللغة الرسمية التي استخدمها الرومان في دولتهم.", ans: 1, opts: ["صواب", "خطأ"], type: 0, corr: "خطأ (التصحيح: اللغة اللاتينية)"},
+    {q: "نشأت الرهبنة في مصر في القرن الثالث الميلادي ومنها انتقلت إلى باقي دول العالم.", ans: 0, opts: ["صواب", "خطأ"], type: 0, corr: "صواب"},
+    {q: "يُعد معبد \"البارثينون\" من أشهر المعابد التي بناها الرومان في مدينة روما.", ans: 1, opts: ["صواب", "خطأ"], type: 0, corr: "خطأ (التصحيح: من معابد اليونان، أما الرومان فبنوا الكولوسيوم)"},
+    {q: "اتسم فن النحت الروماني بالواقعية الشديدة في تصوير الشخصيات.", ans: 0, opts: ["صواب", "خطأ"], type: 0, corr: "صواب"},
+    {q: "اضطرار روما لاستيراد القمح من مصر كان نتيجة لـ:", ans: 3, opts: ["(أ) رخص ثمنه", "(ب) كثرة المصانع", "(ج) انعدام الأراضي", "(د) تدهور الزراعة في روما بسبب الحروب"], type: 1, corr: "(د) تدهور الزراعة في روما بسبب الحروب"},
+    {q: "تسمية عصر الإمبراطور دقلديانوس بـ \"عصر الشهداء\" يرجع لـ:", ans: 1, opts: ["(أ) كثرة حروبه الخارجية", "(ب) اضطهاده الشديد للمسيحيين وحرق كتبهم", "(ج) بناء الكنائس", "(د) وفاته في المعركة"], type: 1, corr: "(ب) اضطهاده الشديد للمسيحيين وحرق كتبهم"},
+    {q: "إقبال المصريين على اعتناق المسيحية كان بهدف:", ans: 2, opts: ["(أ) السفر لروما", "(ب) العمل بالتجارة", "(ج) الخلاص من ظلم الرومان ومبادئها السمحة", "(د) بناء الأهرامات"], type: 1, corr: "(ج) الخلاص من ظلم الرومان ومبادئها السمحة"},
+    {q: "أهمية موقع روما الجغرافي تكمن في أنها كانت:", ans: 0, opts: ["(أ) مركزاً للحضارة والتبادل الثقافي والتجاري", "(ب) بعيدة عن التجارة", "(ج) منطقة جبلية", "(د) منعزلة عن العالم"], type: 1, corr: "(أ) مركزاً للحضارة والتبادل الثقافي والتجاري"},
+    {q: "تحول نظام الحكم في روما من الملكي إلى الجمهوري بسبب:", ans: 3, opts: ["(أ) رغبة الملوك في التنازل", "(ب) كثرة الأمطار", "(ج) تدخل الفرس", "(د) اعتراضات الشعب على انفراد الحاكم بالسلطة"], type: 1, corr: "(د) اعتراضات الشعب على انفراد الحاكم بالسلطة"},
+    {q: "اعتبار \"أوكتافيوس\" من أشهر أباطرة الرومان لأنه:", ans: 1, opts: ["(أ) دمر مدينة روما", "(ب) أول إمبراطور روماني حقق الاستقرار الداخلي", "(ج) طرد الرومان من مصر", "(د) ألغى الضرائب"], type: 1, corr: "(ب) أول إمبراطور روماني حقق الاستقرار الداخلي"},
+    {q: "انتشار الرهبنة في مصر يرجع لكونها:", ans: 2, opts: ["(أ) مدرسة عسكرية", "(ب) حزباً سياسياً", "(ج) أسلوب حياة يقوم على الزهد والعبادة في أماكن منعزلة", "(د) تجارة عالمية"], type: 1, corr: "(ج) أسلوب حياة يقوم على الزهد والعبادة في أماكن منعزلة"},
+    {q: "ازدهار الحياة الفكرية في روما كان نتيجة لـ:", ans: 0, opts: ["(أ) تأثرهم بالحضارة اليونانية والمكتبات العامة", "(ب) منع التعليم", "(ج) هدم المدارس", "(د) الانعزال الثقافي"], type: 1, corr: "(أ) تأثرهم بالحضارة اليونانية والمكتبات العامة"},
+    {q: "بناء الرومان للمدرجات (مثل الكولوسيوم) كان من أجل:", ans: 1, opts: ["(أ) تخزين الغلال", "(ب) إقامة الألعاب الرياضية والاحتفالات", "(ج) حجز مياه النيل", "(د) سكن الفقراء"], type: 1, corr: "(ب) إقامة الألعاب الرياضية والاحتفالات"},
+    {q: "إصدار \"مرسوم ميلان\" عام 313 م كان يهدف إلى:", ans: 2, opts: ["(أ) إعلان الحرب", "(ب) فرض الضرائب", "(ج) منح الحرية الدينية للمسيحيين", "(د) بناء السدود"], type: 1, corr: "(ج) منح الحرية الدينية للمسيحيين"},
+    {q: "انتصار روما على قرطاج في الحروب التي خاضتها:", ans: 2, opts: ["(أ) ضعف روما", "(ب) سقوط الإمبراطورية", "(ج) سيطرة روما على جزر البحر المتوسط", "(د) جفاف البحر"], type: 2, corr: "(ج) سيطرة روما على جزر البحر المتوسط"},
+    {q: "إدراك الإمبراطور أوكتافيوس لأهمية موقع مصر:", ans: 1, opts: ["(أ) ترك مصر مستقلة", "(ب) جعلها أهم ولاية رومانية تحت سيطرته المباشرة", "(ج) نقل العاصمة للقاهرة", "(د) منع التجارة"], type: 2, corr: "(ب) جعلها أهم ولاية رومانية تحت سيطرته المباشرة"},
+    {q: "اتساع حدود الدولة الرومانية وسيطرة أوكتافيوس على الحكم:", ans: 3, opts: ["(أ) قيام الثورات", "(ب) تقسيم البلاد", "(ج) الفقر الشديد", "(د) ظهور \"النظام الإمبراطوري\" وبداية عصر القوة"], type: 2, corr: "(د) ظهور \"النظام الإمبراطوري\" وبداية عصر القوة"},
+    {q: "صدور مرسوم الإمبراطور قسطنطين الأول (ميلان):", ans: 0, opts: ["(أ) الاعتراف بالمسيحية وبداية عصر الأمان للمسيحيين", "(ب) هدم الكنائس", "(ج) منع المسيحية", "(د) زيادة الاضطهاد"], type: 2, corr: "(أ) الاعتراف بالمسيحية وبداية عصر الأمان للمسيحيين"},
+    {q: "تعرض مصر لمجاعة في عهد الإمبراطور تراجان:", ans: 1, opts: ["(أ) طرد الرومان", "(ب) إعادة حفر قناة سيزوستريس وتأمين وصول القمح", "(ج) بناء الأهرامات", "(د) فرض ضرائب"], type: 2, corr: "(ب) إعادة حفر قناة سيزوستريس وتأمين وصول القمح"},
+    {q: "ارتباط الفن القبطي المصري بالديانة المسيحية:", ans: 2, opts: ["(أ) اختفاء الفن", "(ب) تقليد الفن الفارسي", "(ج) ظهور فنون دينية كالنقش على الخشب وصور القديسين", "(د) ترك الرسم"], type: 2, corr: "(ج) ظهور فنون دينية كالنقش على الخشب وصور القديسين"},
+    {q: "صراع الرومان مع جيرانهم وكثرة الحروب في دولتهم:", ans: 3, opts: ["(أ) ازدهار الزراعة", "(ب) قلة الضرائب", "(ج) بناء المكتبات", "(د) تدهور الأنشطة الاقتصادية خاصة الزراعة"], type: 2, corr: "(د) تدهور الأنشطة الاقتصادية خاصة الزراعة"},
+    {q: "دخول القديس مرقس إلى مصر في القرن الأول الميلادي:", ans: 0, opts: ["(أ) انتشار المسيحية وتأسيس مدرسة الإسكندرية", "(ب) بناء المعابد الفرعونية", "(ج) طرد الرومان", "(د) انتشار الوثنية"], type: 2, corr: "(أ) انتشار المسيحية وتأسيس مدرسة الإسكندرية"},
+    {q: "تأثر الرومان بالفن المصري القديم في عمارة المقابر:", ans: 2, opts: ["(أ) ترك البناء", "(ب) هدم الأهرامات", "(ج) ظهور تأثير الفن الجنائزي في زخرفة التوابيت", "(د) تقليد الفن الصيني"], type: 2, corr: "(ج) ظهور تأثير الفن الجنائزي في زخرفة التوابيت"},
+    {q: "هزيمة كليوباترا السابعة في معركة أكتيوم البحرية عام 31 ق.م:", ans: 3, opts: ["(أ) استقلال مصر", "(ب) عودة الفرس", "(ج) قوة البطالمة", "(د) أصبحت مصر ولاية رومانية وانتهاء حكم البطالمة"], type: 2, corr: "(د) أصبحت مصر ولاية رومانية وانتهاء حكم البطالمة"},
+    {q: "سيطر الرومان على البحر المتوسط حتى أصبح يُعرف بـ:", ans: 2, opts: ["(أ) بحر العرب", "(ب) البحر الأحمر", "(ج) البحيرة الرومانية", "(د) المحيط الهندي"], type: 3, corr: "(ج) البحيرة الرومانية"},
+    {q: "يُعد القديس ........ هو الذي أدخل المسيحية إلى مصر.", ans: 3, opts: ["(أ) أنطونيوس", "(ب) باخوم", "(ج) شنودة", "(د) مرقس"], type: 3, corr: "(د) مرقس"},
+    {q: "استخدم الرومان في نشاطهم التجاري العملات ........ لتسهيل التبادل.", ans: 1, opts: ["(أ) الورقية", "(ب) المعدنية", "(ج) الحجرية", "(د) الخشبية"], type: 3, corr: "(ب) المعدنية"},
+    {q: "يُعد ........ أسلوب حياة نشأ في مصر يقوم على الانعزال للعبادة.", ans: 0, opts: ["(أ) الرهبنة", "(ب) التجارة", "(ج) التعليم", "(د) الزراعة"], type: 3, corr: "(أ) الرهبنة"},
+    {q: "تمكن الرومان من بسط نفوذهم بعد ........ عديدة لتوسيع حدودهم.", ans: 2, opts: ["(أ) اتفاقيات سلام", "(ب) غرق السفن", "(ج) حروب خارجية", "(د) هجرة السكان"], type: 3, corr: "(ج) حروب خارجية"},
+    {q: "تُعد اللغة ........ هي اللغة التي استخدمها المصريون في الحقبة القبطية.", ans: 0, opts: ["(أ) القبطية", "(ب) اللاتينية", "(ج) الفارسية", "(د) الصينية"], type: 3, corr: "(أ) القبطية"},
+    {q: "أقام الرومان في بلادهم العديد من المباني العامة و ........ مثل الكولوسيوم.", ans: 1, opts: ["(أ) الأهرامات", "(ب) المدرجات", "(ج) الزقورات", "(د) الصوامع"], type: 3, corr: "(ب) المدرجات"},
+    {q: "يُلقب عصر الإمبراطور ........ بعصر الشهداء بسبب اضطهاده للمسيحيين.", ans: 3, opts: ["(أ) أوكتافيوس", "(ب) تراجان", "(ج) قسطنطين", "(د) دقلديانوس"], type: 3, corr: "(د) دقلديانوس"},
+    {q: "نشأت الرهبنة في مصر على يد القديس ........ في القرن الثالث الميلادي.", ans: 0, opts: ["(أ) أنطونيوس", "(ب) مرقس", "(ج) باخوم", "(د) بطليموس"], type: 3, corr: "(أ) أنطونيوس"},
+    {q: "قامت الحضارة الرومانية على سواحل البحر ........ وجهة جنوب أوروبا.", ans: 2, opts: ["(أ) الأحمر", "(ب) الميت", "(ج) المتوسط", "(د) الأسود"], type: 3, corr: "(ج) المتوسط"},
+    {q: "نظام حكم يعتمد على انتخاب الشعب لمن يحكمه ويشارك في وضع القوانين:", ans: 0, opts: ["(أ) النظام الجمهوري", "(ب) الملكية", "(ج) الاستبداد", "(د) العسكري"], type: 4, corr: "(أ) النظام الجمهوري"},
+    {q: "فترة تاريخية في مصر بدأت منذ دخول المسيحية حتى الفتح الإسلامي:", ans: 1, opts: ["(أ) العصر اليوناني", "(ب) الحقبة القبطية", "(ج) العصر الفارسي", "(د) العصر الفرعوني"], type: 4, corr: "(ب) الحقبة القبطية"},
+    {q: "أسلوب حياة يقوم على ترك الدنيا والعيش في أماكن منعزلة للعبادة:", ans: 3, opts: ["(أ) التجارة", "(ب) الصناعة", "(ج) الفلسفة", "(د) الرهبنة"], type: 4, corr: "(د) الرهبنة"},
+    {q: "لغة كُتبت بحروف يونانية مع إضافة رموز مستمدة من الخط الديموطيقي:", ans: 2, opts: ["(أ) اللغة اللاتينية", "(ب) اللغة العربية", "(ج) اللغة القبطية", "(د) اللغة الهيروغليفية"], type: 4, corr: "(ج) اللغة القبطية"},
+    {q: "اسم أُطلق على فترة حكم الإمبراطور دقلديانوس لشدة اضطهاده للمسيحيين:", ans: 0, opts: ["(أ) عصر الشهداء", "(ب) عصر القوة", "(ج) العصر الذهبي", "(د) عصر الرخاء"], type: 4, corr: "(أ) عصر الشهداء"},
+    {q: "أول إمبراطور روماني يعترف بالمسيحية ويمنح الحرية الدينية:", ans: 1, opts: ["(أ) دقلديانوس", "(ب) قسطنطين الأول", "(ج) أوكتافيوس", "(د) تراجان"], type: 5, corr: "(ب) قسطنطين الأول"},
+    {q: "أول إمبراطور روماني ومؤسس النظام الإمبراطوري وحقق الاستقرار:", ans: 3, opts: ["(أ) تراجان", "(ب) حمورابي", "(ج) مرقس", "(د) أوكتافيوس (أغسطس)"], type: 5, corr: "(د) أوكتافيوس (أغسطس)"},
+    {q: "إمبراطور روماني أعاد حفر قناة تربط بين النيل والبحر الأحمر:", ans: 2, opts: ["(أ) قسطنطين", "(ب) دقلديانوس", "(ج) تراجان", "(د) بطليموس"], type: 5, corr: "(ج) تراجان"},
+    {q: "القديس الذي نشأت الرهبنة في مصر على يديه واتجه للصحراء:", ans: 0, opts: ["(أ) أنطونيوس", "(ب) مرقس", "(ج) باخوم", "(د) شنودة"], type: 5, corr: "(أ) أنطونيوس"},
+    {q: "القديس الذي أدخل المسيحية إلى مصر وأنشأ أول كنيسة بالإسكندرية:", ans: 2, opts: ["(أ) أنطونيوس", "(ب) دقلديانوس", "(ج) مرقس", "(د) أوكتافيوس"], type: 5, corr: "(ج) مرقس"}
+];
+
+document.getElementById('startBtn').onclick = () => {
+    userName = document.getElementById('uName').value;
+    if(userName.length < 3) return alert("أدخل الاسم الثلاثي");
+    startTime = new Date();
+    document.getElementById('sWelcome').play();
+    document.getElementById('scr-1').classList.remove('active-screen');
+    document.getElementById('scr-2').classList.add('active-screen');
+    document.getElementById('stagesNav').style.display = 'flex';
+    loadQ();
+};
+
+function loadQ() {
+    const q = quiz[cur];
+    document.getElementById('qText').innerText = q.q;
+    document.getElementById('feedback').style.display = 'none';
+    document.getElementById('q-count').innerText = "السؤال: " + (cur+1);
+    document.querySelectorAll('.stage-item').forEach((el, i) => {
+        el.className = 'stage-item ' + (i === q.type ? 'current' : i < q.type ? 'done' : '');
+    });
+    const optsDiv = document.getElementById('options');
+    optsDiv.innerHTML = "";
+    let buttons = [];
+    q.opts.forEach((o, i) => {
+        const b = document.createElement('button');
+        b.className = 'btn-opt'; b.innerText = o;
+        b.onclick = () => check(i, b, buttons);
+        optsDiv.appendChild(b);
+        buttons.push(b);
+    });
+}
+
+function check(i, b, btns) {
+    if(!canAnswer) return;
+    canAnswer = false;
+    const feedback = document.getElementById('feedback');
+    if(i === quiz[cur].ans) {
+        score++; b.classList.add('correct');
+        document.getElementById('sCor').play();
+        setTimeout(() => document.getElementById('vCor').play(), 300);
+    } else {
+        b.classList.add('wrong');
+        btns[quiz[cur].ans].classList.add('correct');
+        document.getElementById('sErr').play();
+        feedback.innerText = quiz[cur].corr;
+        feedback.style.display = 'block';
+        setTimeout(() => document.getElementById('vErr').play(), 300);
+    }
+    document.getElementById('s-val').innerText = "الدرجة: " + score;
+}
+
+function nextQ() {
+    cur++;
+    canAnswer = true;
+    if(cur < quiz.length) loadQ();
+    else sendResult();
+}
+
+function sendResult() {
+    const duration = Math.round((new Date() - startTime) / 1000);
+    const params = new URLSearchParams({name: userName, lesson: "الحضارة الرومانية", score: score, duration: duration});
+    fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: params })
+    .then(() => { 
+        document.getElementById('scr-2').classList.remove('active-screen');
+        document.getElementById('scr-3').classList.add('active-screen');
+        document.getElementById('stagesNav').style.display = 'none';
+        
+        let message = "";
+        const percentage = (score / quiz.length) * 100;
+        if (percentage >= 85) message = "أهلاً " + userName + "، إمبراطور حقيقي! 👑 حصلت على " + score + " من 50. تفوقك يذكرنا بعظمة روما، تم إرسال نتيجتك بنجاح.";
+        else if (percentage >= 50) message = "أهلاً " + userName + "، محارب قدير! 🛡️ حصلت على " + score + " من 50. بداية موفقة، حاول مجدداً لتصبح قائداً، تم إرسال نتيجتك بنجاح.";
+        else message = "أهلاً " + userName + "، تحتاج لتدريب أكثر يا بطل! ⚔️ حصلت على " + score + " من 50. راجع الدرس لتتحسن، تم إرسال نتيجتك بنجاح.";
+        document.getElementById('final-msg').innerText = message;
+    });
+}
+
+document.getElementById('vCor').onended = nextQ;
+document.getElementById('vErr').onended = nextQ;
+</script>
+</body>
+</html>
